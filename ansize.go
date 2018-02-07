@@ -16,20 +16,19 @@ import (
 )
 
 const (
-	ANSI_BASIC_BASE 	int 		= 16
-	ANSI_COLOR_SPACE 	uint32 	= 6
-	ANSI_FOREGROUND 	string 	= "38"
-	ANSI_RESET 				string 	= "\x1b[0m"
-	CHARACTERS 				string 	= "01"
-	DEFAULT_WIDTH			int 		= 100
-	PROPORTION				float32 = 0.46
-	RGBA_COLOR_SPACE 	uint32 	= 1 << 16
+	ANSI_BASIC_BASE  int     = 16
+	ANSI_COLOR_SPACE uint32  = 6
+	ANSI_FOREGROUND  string  = "38"
+	ANSI_RESET       string  = "\x1b[0m"
+	CHARACTERS       string  = "01"
+	DEFAULT_WIDTH    int     = 100
+	PROPORTION       float32 = 0.46
+	RGBA_COLOR_SPACE uint32  = 1 << 16
 )
-
 
 func toAnsiCode(c color.Color) (string) {
 	r, g, b, _ := c.RGBA()
-	code := int(ANSI_BASIC_BASE + toAnsiSpace(r) * 36 + toAnsiSpace(g) * 6 + toAnsiSpace(b))
+	code := int(ANSI_BASIC_BASE + toAnsiSpace(r)*36 + toAnsiSpace(g)*6 + toAnsiSpace(b))
 	if code == ANSI_BASIC_BASE {
 		return ANSI_RESET
 	}
@@ -41,11 +40,11 @@ func toAnsiSpace(val uint32) (int) {
 }
 
 func writeAnsiImage(img image.Image, file *os.File, width int) {
-	m := resize.Resize(uint(width), uint(float32(width) * PROPORTION), img, resize.Lanczos3)
+	m := resize.Resize(uint(width), uint(float32(width)*PROPORTION), img, resize.Lanczos3)
 	var current, previous string
 	bounds := m.Bounds()
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x:= bounds.Min.X; x < bounds.Max.X; x++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			current = toAnsiCode(m.At(x, y))
 			if (current != previous) {
 				fmt.Print(current)
@@ -67,7 +66,6 @@ func writeAnsiImage(img image.Image, file *os.File, width int) {
 	file.WriteString(ANSI_RESET)
 }
 
-
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 	if len(os.Args) < 3 {
@@ -88,20 +86,20 @@ func main() {
 	if err != nil {
 		fmt.Println("Could not open image " + imageName)
 		return
-  }
-  outFile, err := os.Create(outputName)
+	}
+	outFile, err := os.Create(outputName)
 	if err != nil {
 		fmt.Println("Could not open " + outputName + " for writing")
 		return
-  }
-  defer imageFile.Close()
-  defer outFile.Close()
-  imageReader := bufio.NewReader(imageFile)
-  img, _, err := image.Decode(imageReader)
-  if err != nil {
-  	fmt.Println("Could not decode image")
-  	return
-  }
+	}
+	defer imageFile.Close()
+	defer outFile.Close()
+	imageReader := bufio.NewReader(imageFile)
+	img, _, err := image.Decode(imageReader)
+	if err != nil {
+		fmt.Println("Could not decode image")
+		return
+	}
 
-  writeAnsiImage(img, outFile, width)
+	writeAnsiImage(img, outFile, width)
 }
